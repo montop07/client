@@ -1,27 +1,30 @@
-import React, { useContext } from 'react';
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import { AuthProvider, AuthContext } from './context/AuthContext';
-import Dashboard from './pages/Dashboard';
-import Login from './pages/Login';
-import Register from './pages/Register';
+import React, { useState } from 'react';
+import FilterForm from './components/FilterForm';
+import FilterResults from './components/FilterResults';
 
-const PrivateRoute = ({ children }) => {
-    const { user } = useContext(AuthContext);
-    return user ? children : <Navigate to="/login" />;
+const App = () => {
+  const [results, setResults] = useState([]);
+
+  const fetchFilteredData = async (filters) => {
+    try {
+      const response = await fetch('/api/filter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(filters),
+      });
+      const data = await response.json();
+      setResults(data); // Update results with the response data
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
+
+  return (
+    <div>
+      <FilterForm onFilterSubmit={fetchFilteredData} />
+      <FilterResults results={results} />
+    </div>
+  );
 };
-
-function App() {
-    return (
-        <AuthProvider>
-            <Router>
-                <Routes>
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/register" element={<Register />} />
-                    <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-                </Routes>
-            </Router>
-        </AuthProvider>
-    );
-}
 
 export default App;
